@@ -1,0 +1,17 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  title: MyString
+  year_published: 1
+  price: 9.99
+  out_of_print: false
+  author: one
+  supplier: one
+
+two:
+  title: MyString
+  year_published: 1
+  price: 9.99
+  out_of_print: false
+  author: two
+  supplier: two
