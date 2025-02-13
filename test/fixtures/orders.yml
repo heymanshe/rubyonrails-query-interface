@@ -1,9 +1,9 @@
 # Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
 one:
-  status: 1
   customer: one
+  status: 1
 
 two:
-  status: 1
   customer: two
+  status: 1
