@@ -92,7 +92,7 @@
     - **`offset`** – Skips a specified number of records.
     - **`joins / includes`** – Joins related tables for queries.
 
-### Retrieving a Single Object
+## 2.1 Retrieving a Single Object
 
 **`find`**
 
@@ -211,3 +211,112 @@ SELECT * FROM customers WHERE store_id = 3 AND id = 17;
 ```bash
 customer = Customer.find_by(id: customer.id_value)
 ```
+
+## 2.2 Retrieving Multiple Objects in Batches
+
+- Iterating over large sets of records at once `(Customer.all.each)` can consume too much memory.
+
+- Rails provides `find_each` and `find_in_batches` to process records in memory-efficient batches.
+
+**`find_each`**
+
+- Retrieves records in batches and yields each record individually.
+
+- Default batch size: **1000 records**.
+
+- Works on model classes and relations without ordering.
+
+```bash
+Customer.find_each do |customer|
+  NewsMailer.weekly(customer).deliver_now
+end
+```
+
+- Options for `find_each`
+
+- **`:batch_size`** – Sets batch size (default: `1000`).
+
+```bash
+Customer.find_each(batch_size: 5000) do |customer|
+  NewsMailer.weekly(customer).deliver_now
+end
+```
+
+- **`:start`** – Specifies starting ID.
+
+```bash
+Customer.find_each(start: 2000) do |customer|
+  NewsMailer.weekly(customer).deliver_now
+end
+```
+
+**`:finish`** – Specifies ending ID.
+
+```bash
+Customer.find_each(start: 2000, finish: 10000) do |customer|
+  NewsMailer.weekly(customer).deliver_now
+end
+```
+
+- **`:error_on_ignore`** – Raises error if order is present.
+
+- **`:order`** – Specifies sorting order (:asc or :desc).
+
+```bash
+Customer.find_each(order: :desc) do |customer|
+  NewsMailer.weekly(customer).deliver_now
+end
+```
+
+### find_in_batches
+
+- Similar to `find_each`, but yields entire batches as arrays instead of individual records.
+
+- Default batch size: `1000 records`.
+
+```bash
+Customer.find_in_batches do |customers|
+  export.add_customers(customers)
+end
+```
+
+### Options for `find_in_batches`
+
+- **`:batch_size`** – Sets batch size.
+
+```bash
+Customer.find_in_batches(batch_size: 2500) do |customers|
+  export.add_customers(customers)
+end
+```
+
+- **`:start`** – Specifies starting ID.
+
+```bash
+Customer.find_in_batches(batch_size: 2500, start: 5000) do |customers|
+  export.add_customers(customers)
+end
+```
+
+- **`:finish`** – Specifies ending ID.
+
+```bash
+Customer.find_in_batches(finish: 7000) do |customers|
+  export.add_customers(customers)
+end
+```
+
+- **`:error_on_ignore`** – Raises error if order is present.
+
+| Method          | Use Case                                              |
+|----------------|-------------------------------------------------------|
+| `find_each`    | When records should be processed individually.        |
+| `find_in_batches` | When records should be processed in groups (e.g., bulk updates/exports). |
+
+
+- `find_each` and `find_in_batches` require an order on the primary key `(id)`.
+
+- If a relation has ordering, Rails **ignores it** or **raises an error** depending on `error_on_ignore` setting.
+
+- Ideal for processing **large datasets** without excessive memory consumption.
+
