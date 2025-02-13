@@ -3,15 +3,15 @@
 one:
   title: MyString
   year_published: 1
-  price: 9.99
   out_of_print: false
+  price: 9.99
   author: one
   supplier: one
 
 two:
   title: MyString
   year_published: 1
-  price: 9.99
   out_of_print: false
+  price: 9.99
   author: two
   supplier: two
