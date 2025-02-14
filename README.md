@@ -555,3 +555,49 @@ Book.includes(:author).order("books.print_year desc", "authors.name asc")
 
 - When using `select`, `pluck`, or `ids` with `distinct`, ensure that the fields used in the `order` clause are included in the `select` list. Otherwise, an `ActiveRecord::StatementInvalid` exception may occur.
 
+# 5. Selecting Specific Fields
+
+**Selecting Specific Columns**
+
+- By default, Model.find selects all fields (SELECT *). To fetch only specific fields, use select:
+
+```bash
+Book.select(:isbn, :out_of_print)
+# OR
+Book.select("isbn, out_of_print")
+
+# Generated SQL:
+
+SELECT isbn, out_of_print FROM books;
+```
+
+**Important Considerations**
+
+- Fetching only specific columns initializes a model object with only those fields.
+
+- Accessing unselected fields results in:
+
+```bash
+ActiveModel::MissingAttributeError: missing attribute '<attribute>' for Book
+```
+
+- The id field does not raise this error but is required for associations to work correctly.
+
+**Using distinct for Unique Records**
+
+- To fetch unique values for a specific field:
+
+```bash
+Customer.select(:last_name).distinct
+
+# Generated SQL:
+
+SELECT DISTINCT last_name FROM customers;
+```
+
+- To remove the uniqueness constraint:
+
+```bash
+query = Customer.select(:last_name).distinct
+query.distinct(false) # Fetches all values, including duplicates
+```
