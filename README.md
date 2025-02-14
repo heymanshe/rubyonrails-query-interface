@@ -601,3 +601,97 @@ SELECT DISTINCT last_name FROM customers;
 query = Customer.select(:last_name).distinct
 query.distinct(false) # Fetches all values, including duplicates
 ```
+
+# 6. SQL LIMIT and OFFSET in ActiveRecord
+
+**Applying LIMIT in ActiveRecord**
+
+- `limit(n)`: Retrieves up to `n` records from the table.
+
+```bash
+Customer.limit(5)
+
+# SQL Executed:
+
+SELECT * FROM customers LIMIT 5;
+
+# Returns the first 5 customers.
+```
+
+**Applying OFFSET in ActiveRecord**
+
+- `offset(n)`: Skips the first `n` records before returning results.
+
+```bash
+Customer.limit(5).offset(30)
+
+# SQL Executed:
+
+SELECT * FROM customers LIMIT 5 OFFSET 30;
+```
+
+- Skips the first 30 records and returns the next 5.
+
+- Use `limit` to control the number of records fetched.
+
+- Use `offset` to paginate results efficiently.
+
+# 7. SQL GROUP BY and HAVING in Rails Active Record
+
+## 7.1 Using group Method
+
+- The group method applies a `GROUP BY` clause to the SQL fired by the finder.
+
+```bash
+Order.select("created_at").group("created_at")
+
+# Generates SQL:
+
+SELECT created_at FROM orders GROUP BY created_at;
+
+# Returns a single `Order` object for each unique `created_at` date.
+```
+
+## 7.2 Counting Grouped Items
+
+- Use `.count` after `group` to get totals.
+
+```bash
+Order.group(:status).count
+
+# Generates SQL:
+
+SELECT COUNT(*) AS count_all, status AS status FROM orders GROUP BY status;
+
+# Returns a hash:
+
+{"being_packed"=>7, "shipped"=>12}
+```
+
+## 7.3 Using `HAVING` for Group Conditions
+
+- The HAVING clause filters grouped results.
+
+```bash
+Order.select("created_at as ordered_date, sum(total) as total_price")
+     .group("created_at")
+     .having("sum(total) > ?", 200)
+
+# Generates SQL:
+
+SELECT created_at as ordered_date, sum(total) as total_price
+FROM orders
+GROUP BY created_at
+HAVING sum(total) > 200;
+
+# Returns orders grouped by date where total is greater than $200.
+```
+
+## 7.4 Accessing Grouped Data
+
+```bash
+big_orders = Order.select("created_at, sum(total) as total_price")
+                  .group("created_at")
+                  .having("sum(total) > ?", 200)
+big_orders[0].total_price # Returns the total price of the first grouped order
+```
