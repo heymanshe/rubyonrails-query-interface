@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_02_12_103905) do
+ActiveRecord::Schema[8.0].define(version: 2025_02_14_090630) do
   create_table "authors", force: :cascade do |t|
     t.string "name"
     t.datetime "created_at", null: false
@@ -20,8 +20,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_12_103905) do
   create_table "books", force: :cascade do |t|
     t.string "title"
     t.integer "year_published"
-    t.decimal "price"
     t.boolean "out_of_print"
+    t.decimal "price"
     t.integer "author_id", null: false
     t.integer "supplier_id", null: false
     t.datetime "created_at", null: false
@@ -33,29 +33,30 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_12_103905) do
   create_table "books_orders", id: false, force: :cascade do |t|
     t.integer "book_id", null: false
     t.integer "order_id", null: false
+    t.index ["book_id"], name: "index_books_orders_on_book_id"
+    t.index ["order_id"], name: "index_books_orders_on_order_id"
   end
 
   create_table "customers", force: :cascade do |t|
-    t.string "first_name"
-    t.string "last_name"
-    t.integer "store_id"
+    t.string "name"
+    t.string "email"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "orders_count"
   end
 
   create_table "orders", force: :cascade do |t|
-    t.integer "status"
     t.integer "customer_id", null: false
+    t.integer "status"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["customer_id"], name: "index_orders_on_customer_id"
   end
 
   create_table "reviews", force: :cascade do |t|
-    t.text "content"
-    t.integer "state"
     t.integer "customer_id", null: false
     t.integer "book_id", null: false
+    t.integer "state"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["book_id"], name: "index_reviews_on_book_id"
@@ -70,6 +71,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_12_103905) do
 
   add_foreign_key "books", "authors"
   add_foreign_key "books", "suppliers"
+  add_foreign_key "books_orders", "books"
+  add_foreign_key "books_orders", "orders"
   add_foreign_key "orders", "customers"
   add_foreign_key "reviews", "books"
   add_foreign_key "reviews", "customers"
