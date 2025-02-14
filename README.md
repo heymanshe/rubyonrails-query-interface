@@ -320,3 +320,181 @@ end
 
 - Ideal for processing **large datasets** without excessive memory consumption.
 
+
+# 3. Where Conditions
+
+## 3.1 Pure String Conditions
+
+- The where method allows specifying conditions to limit records (SQL WHERE clause).
+
+```bash
+Book.where("title = 'Introduction to Algorithms'").
+```
+
+- Risk of SQL Injection: Using string interpolation `(Book.where("title LIKE '%#{params[:title]}%'"))` is unsafe.
+
+- Avoid pure string conditions and use safer alternatives like array conditions.
+
+## 3.2 Array Conditions
+
+Use `?` placeholders for safe query execution.
+
+```bash
+Book.where("title = ?", params[:title])
+```
+
+- Supports multiple conditions:
+
+```bash
+Book.where("title = ? AND out_of_print = ?", params[:title], false)
+```
+
+- Avoid direct variable interpolation `(Book.where("title = #{params[:title]}"))` as it exposes the database to SQL injection.
+
+### 3.2.1 Placeholder Conditions
+
+- Use named placeholders for better readability:
+
+```ruby
+Book.where("created_at >= :start_date AND created_at <= :end_date",
+  { start_date: params[:start_date], end_date: params[:end_date] })
+```
+
+### 3.2.2 Conditions Using LIKE
+
+- LIKE conditions should be sanitized to avoid unexpected behavior.
+
+- Example (unsafe): 
+
+```bash
+Book.where("title LIKE ?", params[:title] + "%")
+```
+
+- Safe approach:
+
+```bash
+Book.where("title LIKE ?", Book.sanitize_sql_like(params[:title]) + "%")
+```
+
+## 3.3 Hash Conditions
+
+- Hash conditions allow passing a hash with field names as keys and values as conditions.
+
+- Supports equality, range, and subset checks.
+
+### 3.3.1 Equality Conditions
+
+```bash
+Book.where(out_of_print: true)
+
+# SQL: 
+SELECT * FROM books WHERE books.out_of_print = 1
+```
+
+- Works with string keys:
+
+```bash
+Book.where("out_of_print" => true)
+```
+
+- Works with **belongs_to relationships**:
+
+```bash
+author = Author.first
+Book.where(author: author)
+Author.joins(:books).where(books: { author: author })
+```
+
+- **Tuple-like syntax** (useful for composite keys):
+
+```bash
+Book.where([:author_id, :id] => [[15, 1], [15, 2]])
+```
+
+### 3.3.2 Range Conditions
+
+```bash
+Book.where(created_at: (Time.now.midnight - 1.day)..Time.now.midnight)
+
+# SQL:
+
+SELECT * FROM books WHERE books.created_at BETWEEN 'YYYY-MM-DD HH:MM:SS' AND 'YYYY-MM-DD HH:MM:SS'
+```
+
+- Beginless and Endless Ranges:
+
+```bash
+Book.where(created_at: (Time.now.midnight - 1.day)..)
+
+# SQL: 
+
+WHERE books.created_at >= 'YYYY-MM-DD HH:MM:SS'
+```
+
+### 3.3.3 Subset Conditions
+
+- IN Queries:
+
+```bash
+Customer.where(orders_count: [1, 3, 5])
+
+# SQL: 
+
+SELECT * FROM customers WHERE customers.orders_count IN (1,3,5)
+```
+
+## 3.4 NOT Conditions
+
+- NOT IN Queries:
+
+```bash
+Customer.where.not(orders_count: [1, 3, 5])
+
+# SQL: 
+
+WHERE customers.orders_count NOT IN (1,3,5)
+```
+
+- Handling NULL values:
+
+```bash
+Customer.where.not(nullable_country: "UK")
+
+# If column contains NULL, result may be empty
+```
+
+## 3.5 OR Conditions
+
+- Combining Queries with OR:
+
+```bash
+Customer.where(last_name: "Smith").or(Customer.where(orders_count: [1, 3, 5]))
+
+# SQL: 
+
+WHERE customers.last_name = 'Smith' OR customers.orders_count IN (1,3,5)
+```
+
+## 3.6 AND Conditions
+
+
+- Chaining Conditions:
+
+```bash
+Customer.where(last_name: "Smith").where(orders_count: [1, 3, 5])
+
+# SQL: 
+
+WHERE customers.last_name = 'Smith' AND customers.orders_count IN (1,3,5)
+```
+
+- Using and for logical intersection:
+
+```bash
+Customer.where(id: [1, 2]).and(Customer.where(id: [2, 3]))
+
+# SQL: 
+
+WHERE customers.id IN (1, 2) AND customers.id IN (2, 3)
+```
+
