@@ -498,3 +498,60 @@ Customer.where(id: [1, 2]).and(Customer.where(id: [2, 3]))
 WHERE customers.id IN (1, 2) AND customers.id IN (2, 3)
 ```
 
+# 4. Ordering Records
+
+**Basic Ordering**
+
+- To retrieve records in a specific order, use the `order` method.
+
+```bash
+Book.order(:created_at)  # Orders by created_at in ascending order
+Book.order("created_at")
+```
+
+**Specifying Order Direction**
+
+
+- You can specify `ASC` (ascending) or `DESC` (descending):
+
+```bash
+Book.order(created_at: :desc)  # Descending order
+Book.order(created_at: :asc)   # Ascending order
+Book.order("created_at DESC")
+Book.order("created_at ASC")
+```
+
+**Ordering by Multiple Fields**
+
+- To order by multiple columns:
+
+```bash
+Book.order(title: :asc, created_at: :desc)
+Book.order(:title, created_at: :desc)
+Book.order("title ASC, created_at DESC")
+Book.order("title ASC", "created_at DESC")
+```
+
+**Chaining Multiple Order Calls**
+
+- You can call `order` multiple times; subsequent orders are appended:
+
+```bash
+Book.order("title ASC").order("created_at DESC")
+
+# Generates: ORDER BY title ASC, created_at DESC
+```
+
+**Ordering from a Joined Table**
+
+- To order by fields from associated tables:
+
+```bash
+Book.includes(:author).order(books: { print_year: :desc }, authors: { name: :asc })
+Book.includes(:author).order("books.print_year desc", "authors.name asc")
+```
+
+**Ordering with Select, Pluck, and IDs**
+
+- When using `select`, `pluck`, or `ids` with `distinct`, ensure that the fields used in the `order` clause are included in the `select` list. Otherwise, an `ActiveRecord::StatementInvalid` exception may occur.
+
