@@ -601,3 +601,38 @@ SELECT DISTINCT last_name FROM customers;
 query = Customer.select(:last_name).distinct
 query.distinct(false) # Fetches all values, including duplicates
 ```
+
+# 6. SQL LIMIT and OFFSET in ActiveRecord
+
+**Applying LIMIT in ActiveRecord**
+
+- `limit(n)`: Retrieves up to `n` records from the table.
+
+```bash
+Customer.limit(5)
+
+# SQL Executed:
+
+SELECT * FROM customers LIMIT 5;
+
+# Returns the first 5 customers.
+```
+
+**Applying OFFSET in ActiveRecord**
+
+- `offset(n)`: Skips the first `n` records before returning results.
+
+```bash
+Customer.limit(5).offset(30)
+
+# SQL Executed:
+
+SELECT * FROM customers LIMIT 5 OFFSET 30;
+```
+
+- Skips the first 30 records and returns the next 5.
+
+- Use `limit` to control the number of records fetched.
+
+- Use `offset` to paginate results efficiently.
+
