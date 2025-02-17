@@ -891,7 +891,7 @@ Book.first.highlighted_reviews.average(:rating)
 - This is useful for maintaining consistent query chains.  
 - Prevents unnecessary database queries when no results are expected.  
 
-# 10. # Readonly Objects in Active Record
+# 10. Readonly Objects in Active Record
 
 - **Readonly Method**: 
   - Active Record provides the `readonly` method to explicitly prevent modification of any returned objects.
@@ -903,3 +903,100 @@ Book.first.highlighted_reviews.average(:rating)
   customer.save # Raises an ActiveRecord::ReadOnlyRecord
 
 - Once an object is set to `readonly`, it cannot be updated, and trying to do so (like calling `save`) will result in the `ActiveRecord::ReadOnlyRecord` exception.
+
+# 11.  Locking Records for Update in Rails
+
+Locking is useful for preventing race conditions when updating records in the database and ensuring atomic updates. Active Record provides two locking mechanisms:
+
+- Optimistic Locking
+- Pessimistic Locking
+
+## 11.1 Optimistic Locking
+
+Optimistic Locking allows multiple users to access the same record for edits, assuming minimal conflicts with the data. It checks if another process has made changes to a record since it was opened, and throws an `ActiveRecord::StaleObjectError` exception if that has occurred.
+
+### Optimistic Locking Column
+
+To use optimistic locking, the table needs to have a column called `lock_version` of type integer. Every time the record is updated, Active Record increments this `lock_version` column. If an update request is made with a lower value in the `lock_version` field, the update request will fail with an `ActiveRecord::StaleObjectError`.
+
+**Example:**
+```ruby
+c1 = Customer.find(1)
+c2 = Customer.find(1)
+
+c1.first_name = "Sandra"
+c1.save
+
+c2.first_name = "Michael"
+c2.save # Raises ActiveRecord::StaleObjectError
+```
+
+- You can handle the exception by rescuing it and applying the business logic to resolve the conflict.
+
+**Disable Optimistic Locking**
+
+- You can turn off optimistic locking by setting:
+
+```ruby
+ActiveRecord::Base.lock_optimistically = false
+```
+
+**Custom Locking Column**
+
+- To override the default `lock_version` column name, you can use:
+
+```ruby
+class Customer < ApplicationRecord
+  self.locking_column = :lock_customer_column
+end
+```
+
+## 11.2 Pessimistic Locking
+
+- Pessimistic Locking uses a locking mechanism provided by the database. The lock method obtains an exclusive lock on the selected rows. Pessimistic locking is typically used with transactions to prevent deadlock conditions.
+
+```ruby
+Book.transaction do
+  book = Book.lock.first
+  book.title = "Algorithms, second edition"
+  book.save!
+end
+```
+
+- This will generate the following SQL for MySQL:
+
+```sql
+BEGIN
+SELECT * FROM books LIMIT 1 FOR UPDATE
+UPDATE books SET updated_at = '2009-02-07 18:05:56', title = 'Algorithms, second edition' WHERE id = 1
+COMMIT
+```
+
+**Using Raw SQL in Pessimistic Locking**
+
+- You can pass raw SQL to the `lock` method for different types of locks. For example, in MySQL, you can use `LOCK IN SHARE MODE` to lock a record but still allow other queries to read it.
+
+```ruby
+Book.transaction do
+  book = Book.lock("LOCK IN SHARE MODE").find(1)
+  book.increment!(:views)
+end
+```
+
+**Locking an Instance with a Block**
+
+- If you already have an instance of the model, you can acquire the lock in one go using with_lock:
+
+```ruby
+book = Book.first
+book.with_lock do
+  # The block is executed within a transaction, and the book is locked
+  book.increment!(:views)
+end
+```
+
+
+
+
+
+
