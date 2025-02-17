@@ -911,7 +911,7 @@ Locking is useful for preventing race conditions when updating records in the da
 - Optimistic Locking
 - Pessimistic Locking
 
-## 1. Optimistic Locking
+## 11.1 Optimistic Locking
 
 Optimistic Locking allows multiple users to access the same record for edits, assuming minimal conflicts with the data. It checks if another process has made changes to a record since it was opened, and throws an `ActiveRecord::StaleObjectError` exception if that has occurred.
 
@@ -950,3 +950,53 @@ class Customer < ApplicationRecord
   self.locking_column = :lock_customer_column
 end
 ```
+
+## 11.2 Pessimistic Locking
+
+- Pessimistic Locking uses a locking mechanism provided by the database. The lock method obtains an exclusive lock on the selected rows. Pessimistic locking is typically used with transactions to prevent deadlock conditions.
+
+```ruby
+Book.transaction do
+  book = Book.lock.first
+  book.title = "Algorithms, second edition"
+  book.save!
+end
+```
+
+- This will generate the following SQL for MySQL:
+
+```sql
+BEGIN
+SELECT * FROM books LIMIT 1 FOR UPDATE
+UPDATE books SET updated_at = '2009-02-07 18:05:56', title = 'Algorithms, second edition' WHERE id = 1
+COMMIT
+```
+
+**Using Raw SQL in Pessimistic Locking**
+
+- You can pass raw SQL to the `lock` method for different types of locks. For example, in MySQL, you can use `LOCK IN SHARE MODE` to lock a record but still allow other queries to read it.
+
+```ruby
+Book.transaction do
+  book = Book.lock("LOCK IN SHARE MODE").find(1)
+  book.increment!(:views)
+end
+```
+
+**Locking an Instance with a Block**
+
+- If you already have an instance of the model, you can acquire the lock in one go using with_lock:
+
+```ruby
+book = Book.first
+book.with_lock do
+  # The block is executed within a transaction, and the book is locked
+  book.increment!(:views)
+end
+```
+
+
+
+
+
+
