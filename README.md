@@ -1265,3 +1265,37 @@ Author.includes(:books).where("books.out_of_print = true").references(:books)
 - This forces the join condition to be applied to the correct table.
 
 
+## 13.3 preload
+
+- `preload` loads each specified association using **one query per association**.
+- Resolves the N + 1 queries problem by executing **just 2 queries**.
+
+```bash
+Book.preload(:author).limit(10)
+
+# SQL
+ 
+SELECT books.* FROM books LIMIT 10
+
+SELECT authors.* FROM authors WHERE authors.id IN (1,2,3,4,5,6,7,8,9,10)
+```
+
+- Unlike `includes`, `preload` does not allow specifying conditions for preloaded associations.
+- Good for cases where you don't need to filter or join data between the parent and child model.
+
+## 13.4 eager_load
+
+- `eager_load` loads all specified associations using **a LEFT OUTER JOIN**.
+- Resolves the N + 1 queries problem by executing **just 1 query**.
+
+```bash
+Book.eager_load(:author).limit(10)
+
+# SQL 
+
+SELECT books.id, books.title, ... FROM books LEFT OUTER JOIN authors ON authors.id = books.author_id LIMIT 10
+```
+
+- Like `includes`, `eager_load` allows specifying conditions for eager-loaded associations.
+- Ideal for when you need to filter or join data from the parent and child models.
+
