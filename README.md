@@ -1412,3 +1412,29 @@ end
 
 ```ruby
 author.books.costs_more_than(100.10)
+```
+
+## 4.2 Using Conditionals in Scopes
+
+- Scopes can use conditionals:
+
+```ruby
+class Order < ApplicationRecord
+  scope :created_before, ->(time) { where(created_at: ...time) if time.present? }
+end
+```
+
+- Scopes behave similarly to class methods:
+
+```ruby
+class Order < ApplicationRecord
+  def self.created_before(time)
+    where(created_at: ...time) if time.present?
+  end
+end
+```
+
+- A scope always returns an `ActiveRecord::Relation`, even if the conditional is `false`.
+
+- A class method can return `nil`, potentially causing `NoMethodError` when chaining methods.
+
