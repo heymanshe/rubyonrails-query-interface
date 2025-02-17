@@ -1103,7 +1103,19 @@ Customer.joins(:orders).merge(Order.created_in_time_range(time_range)).distinct
 This will find all customers with orders created yesterday.
 
 
+## 12.2 `left_outer_joins`
 
+- The `left_outer_joins` method allows you to select records, regardless of whether they have associated records.
 
+```ruby
+Customer.left_outer_joins(:reviews).distinct.select("customers.*, COUNT(reviews.*) AS reviews_count").group("customers.id")
+```
 
+```sql
+SELECT DISTINCT customers.*, COUNT(reviews.*) AS reviews_count
+FROM customers
+LEFT OUTER JOIN reviews ON reviews.customer_id = customers.id
+GROUP BY customers.id
+```
 
+- This query returns all customers with their review count, whether or not they have any reviews.
