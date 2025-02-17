@@ -1299,3 +1299,55 @@ SELECT books.id, books.title, ... FROM books LEFT OUTER JOIN authors ON authors.
 - Like `includes`, `eager_load` allows specifying conditions for eager-loaded associations.
 - Ideal for when you need to filter or join data from the parent and child models.
 
+## 13.5 Strict Loading in Rails
+
+- Strict Loading in Rails helps to avoid lazy loading and N + 1 query issues. It ensures that no associations are lazily loaded unless explicitly allowed.
+
+- Eager loading can prevent N + 1 queries but lazy loading might still occur for some associations.
+
+- To prevent lazy loading, enable `strict_loading`.
+
+- When `strict_loading` is enabled, an `ActiveRecord::StrictLoadingViolationError` is raised if a lazy-loaded association is accessed.
+
+```ruby
+user = User.strict_loading.first
+user.address.city # raises ActiveRecord::StrictLoadingViolationError
+user.comments.to_a # raises ActiveRecord::StrictLoadingViolationError
+```
+- To enable strict loading by default for all relations, set config.active_record.strict_loading_by_default = true.
+- To log violations instead of raising errors, set config.active_record.action_on_strict_loading_violation = :log.
+
+## 13.6 strict_loading!
+
+- `strict_loading!` can be called on a record to enable strict loading.
+
+- This method raises an error if a lazy-loaded association is accessed after the record is flagged with strict_loading!.
+
+```bash
+user = User.first
+user.strict_loading!
+user.address.city # raises ActiveRecord::StrictLoadingViolationError
+user.comments.to_a # raises ActiveRecord::StrictLoadingViolationError
+```
+
+- `strict_loading!` accepts a `:mode argument:`
+
+- `:n_plus_one_only` will raise an error only for lazy-loaded associations that would lead to an `N + 1` query.
+
+```ruby
+user.strict_loading!(mode: :n_plus_one_only)
+user.address.city # works
+user.comments.first.likes.to_a # raises ActiveRecord::StrictLoadingViolationError
+```
+
+## 13.7 strict_loading option on an association
+
+- You can enable strict loading for a specific association by passing `strict_loading: true`.
+
+```bash
+class Author < ApplicationRecord
+  has_many :books, strict_loading: true
+end
+```
+
+- This ensures that any lazy loading of the books association will raise an error.
