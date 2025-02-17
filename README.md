@@ -1414,7 +1414,7 @@ end
 author.books.costs_more_than(100.10)
 ```
 
-## 4.2 Using Conditionals in Scopes
+## 14.2 Using Conditionals in Scopes
 
 - Scopes can use conditionals:
 
@@ -1437,4 +1437,38 @@ end
 - A scope always returns an `ActiveRecord::Relation`, even if the conditional is `false`.
 
 - A class method can return `nil`, potentially causing `NoMethodError` when chaining methods.
+
+## 14.3 Applying a Default Scope
+
+- A default_scope applies a scope to all queries on the model:
+
+```ruby
+class Book < ApplicationRecord
+  default_scope { where(out_of_print: false) }
+end
+```
+
+- The SQL query will always include the condition:
+
+```bash
+SELECT * FROM books WHERE (out_of_print = false)
+```
+
+- Alternative way using a class method:
+
+```ruby
+class Book < ApplicationRecord
+  def self.default_scope
+    # Should return an ActiveRecord::Relation.
+  end
+end
+```
+
+#### Effects of `Default Scope`:
+
+- Applied when creating a new record (`Book.new` includes default scope attributes).
+
+- Not applied when updating records.
+
+**Caution**: Default scope using array format will not assign attributes correctly.
 
