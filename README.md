@@ -1159,3 +1159,34 @@ WHERE reviews.id IS NULL
 - This query returns all customers that have not made any reviews.
 
 
+# 13 Eager Loading Associations
+
+- Eager loading is the mechanism for loading the associated records of the objects returned by `Model.find` using as few queries as possible.
+
+## 13.1 N + 1 Queries Problem
+
+- The following code finds 10 books and prints their authors' last names:
+
+```ruby
+books = Book.limit(10)
+
+books.each do |book|
+  puts book.author.last_name
+end
+```
+
+- While the code seems fine, the problem lies within the total number of queries executed:
+  - 1 query to find 10 books
+  - 10 queries to load the authors for each of the books
+
+- In total, this results in 11 queries being executed.
+
+### 13.1.1 Solution to N + 1 Queries Problem
+
+- To solve the `N + 1` queries problem, Active Record lets you specify in advance all the associations that need to be loaded.
+
+- The methods to prevent `N + 1` queries are:
+
+- `includes`
+- `preload`
+- `eager_load`
