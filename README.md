@@ -807,9 +807,9 @@ Book.where("author_id > 10").reverse_order
 SELECT * FROM books WHERE author_id > 10 ORDER BY books.id DESC;
 ```
 
-Takes no arguments.
+- Takes no arguments.
 
-8.6 rewhere
+## 8.6 rewhere
 
 Overrides an existing `where` condition instead of combining them with `AND`.
 
@@ -853,3 +853,40 @@ Book.group(:author).group(:id)
 
 SELECT * FROM books GROUP BY author, id;
 ```
+
+# 9. `none` Method  
+
+ - The `none` method returns a chainable relation with no records. Any subsequent conditions chained to this relation will continue generating empty results.  
+ 
+```ruby
+Book.none # Returns an empty Relation and fires no queries.
+```
+ 
+- Consider a scenario where a method or scope should always return a chainable relation, even if there are no results.
+ 
+```ruby
+class Book
+  # Returns reviews if there are at least 5,
+  # else returns an empty relation
+  def highlighted_reviews
+    if reviews.count > 5
+      reviews
+    else
+      Review.none # Ensures a chainable empty result
+    end
+  end
+end
+```
+
+### Querying the `highlighted_reviews` Method  
+
+```ruby
+Book.first.highlighted_reviews.average(:rating)
+# Returns the average rating if there are at least 5 reviews.
+# Otherwise, it returns nil without firing unnecessary queries.
+```
+
+## Key Takeaways  
+- `none` ensures that methods return an ActiveRecord Relation instead of `nil`.  
+- This is useful for maintaining consistent query chains.  
+- Prevents unnecessary database queries when no results are expected.  
