@@ -9,4 +9,12 @@ class Book < ApplicationRecord
   scope :old, -> { where(year_published: ...50.years.ago.year) }
   scope :out_of_print_and_expensive, -> { out_of_print.where("price > 500") }
   scope :costs_more_than, ->(amount) { where("price > ?", amount) }
+
+  def highlighted_reviews
+    if reviews.count > 5
+      reviews
+    else
+      Review.none
+    end
+  end
 end

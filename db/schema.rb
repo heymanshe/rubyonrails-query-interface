@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_02_14_122632) do
+ActiveRecord::Schema[8.0].define(version: 2025_02_17_063221) do
   create_table "authors", force: :cascade do |t|
     t.string "name"
     t.datetime "created_at", null: false
@@ -27,6 +27,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_14_122632) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "print_year"
+    t.string "isbn"
     t.index ["author_id"], name: "index_books_on_author_id"
     t.index ["supplier_id"], name: "index_books_on_supplier_id"
   end
@@ -44,6 +45,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_14_122632) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "orders_count"
+    t.integer "visits"
   end
 
   create_table "orders", force: :cascade do |t|
@@ -58,7 +60,9 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_14_122632) do
   create_table "reviews", force: :cascade do |t|
     t.integer "customer_id", null: false
     t.integer "book_id", null: false
-    t.integer "state"
+    t.integer "rating"
+    t.text "content"
+    t.integer "state", default: 0
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["book_id"], name: "index_reviews_on_book_id"
