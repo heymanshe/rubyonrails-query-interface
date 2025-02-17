@@ -1351,3 +1351,64 @@ end
 ```
 
 - This ensures that any lazy loading of the books association will raise an error.
+
+# 14. Scopes
+
+- Scopes in Rails allow you to define reusable queries that can be called as methods on models or associations. Scopes return an `ActiveRecord::Relation`, enabling method chaining.
+
+- Define a scope using the `scope` method inside a model class:
+
+```ruby
+class Book < ApplicationRecord
+  scope :out_of_print, -> { where(out_of_print: true) }
+end
+```
+
+- Call the scope directly on the model or an association:
+
+```ruby
+Book.out_of_print # Returns all out-of-print books
+
+author = Author.first
+author.books.out_of_print # Returns all out-of-print books by the author
+```
+
+- Scopes can be combined for more complex queries:
+
+```ruby
+class Book < ApplicationRecord
+  scope :out_of_print, -> { where(out_of_print: true) }
+  scope :out_of_print_and_expensive, -> { out_of_print.where("price > 500") }
+end
+```
+
+## 14.1 Passing Arguments to Scopes
+
+- Scopes can accept parameters:
+
+```ruby
+class Book < ApplicationRecord
+  scope :costs_more_than, ->(amount) { where("price > ?", amount) }
+end
+```
+
+### Calling a Scope with Arguments
+```ruby
+Book.costs_more_than(100.10)
+```
+
+## Alternative Using Class Methods
+Scopes can be replaced with class methods:
+
+```ruby
+class Book < ApplicationRecord
+  def self.costs_more_than(amount)
+    where("price > ?", amount)
+  end
+end
+```
+
+- Class methods work similarly on associations:
+
+```ruby
+author.books.costs_more_than(100.10)
