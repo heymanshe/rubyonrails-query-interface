@@ -890,3 +890,16 @@ Book.first.highlighted_reviews.average(:rating)
 - `none` ensures that methods return an ActiveRecord Relation instead of `nil`.  
 - This is useful for maintaining consistent query chains.  
 - Prevents unnecessary database queries when no results are expected.  
+
+# 10. # Readonly Objects in Active Record
+
+- **Readonly Method**: 
+  - Active Record provides the `readonly` method to explicitly prevent modification of any returned objects.
+  - Any attempt to modify a readonly object will raise an `ActiveRecord::ReadOnlyRecord` exception.
+
+  ```ruby
+  customer = Customer.readonly.first
+  customer.visits += 1
+  customer.save # Raises an ActiveRecord::ReadOnlyRecord
+
+- Once an object is set to `readonly`, it cannot be updated, and trying to do so (like calling `save`) will result in the `ActiveRecord::ReadOnlyRecord` exception.
