@@ -695,3 +695,161 @@ big_orders = Order.select("created_at, sum(total) as total_price")
                   .having("sum(total) > ?", 200)
 big_orders[0].total_price # Returns the total price of the first grouped order
 ```
+
+# 8. Overriding Conditions
+
+## 8.1 unscope
+
+- The unscope method removes specific query conditions.
+
+```bash
+Book.where("id > 100").limit(20).order("id desc").unscope(:order)
+
+# SQL Executed:
+
+SELECT * FROM books WHERE id > 100 LIMIT 20
+```
+
+- Removing a specific `where` clause:
+
+```bash
+Book.where(id: 10, out_of_print: false).unscope(where: :id)
+
+# SQL Executed:
+
+SELECT books.* FROM books WHERE out_of_print = 0
+```
+
+- `unscope` affects merged relations:
+
+```bash
+Book.order("id desc").merge(Book.unscope(:order))
+
+# SQL Executed:
+
+SELECT books.* FROM books
+```
+
+## 8.2 only
+
+- The `only` method keeps specified conditions and removes others.
+
+```bash
+Book.where("id > 10").limit(20).order("id desc").only(:order, :where)
+
+# SQL Executed:
+
+SELECT * FROM books WHERE id > 10 ORDER BY id DESC
+```
+
+## 8.3 reselect
+
+- The `reselect` method overrides an existing `select` statement.
+
+```bash
+Book.select(:title, :isbn).reselect(:created_at)
+
+# SQL Executed:
+
+SELECT books.created_at FROM books
+```
+
+- Without `reselect`, adding another `select` appends to the selection:
+
+```bash
+Book.select(:title, :isbn).select(:created_at)
+
+# SQL Executed:
+
+SELECT books.title, books.isbn, books.created_at FROM books
+```
+
+## 8.4 reorder
+
+- Overrides the default order specified in associations or queries.
+
+```ruby
+class Author < ApplicationRecord
+  has_many :books, -> { order(year_published: :desc) }
+end
+```
+
+```bash
+Author.find(10).books.reorder("year_published ASC")
+```
+
+- SQL Output:
+
+```bash
+SELECT * FROM books WHERE author_id = 10 ORDER BY year_published ASC;
+```
+
+## 8.5 reverse_order
+
+
+- Reverses the ordering clause if specified.
+
+```bash
+Book.where("author_id > 10").order(:year_published).reverse_order
+
+# SQL Output:
+
+SELECT * FROM books WHERE author_id > 10 ORDER BY year_published DESC;
+```
+
+- If no ordering clause is specified, it orders by the primary key in reverse order.
+
+```bash
+Book.where("author_id > 10").reverse_order
+
+# SQL Output:
+
+SELECT * FROM books WHERE author_id > 10 ORDER BY books.id DESC;
+```
+
+Takes no arguments.
+
+8.6 rewhere
+
+Overrides an existing `where` condition instead of combining them with `AND`.
+
+```bash
+Book.where(out_of_print: true).rewhere(out_of_print: false)
+
+# SQL Output:
+
+SELECT * FROM books WHERE out_of_print = 0;
+```
+
+- Without `rewhere`, conditions are combined:
+
+```bash
+Book.where(out_of_print: true).where(out_of_print: false)
+
+# SQL Output (Invalid Query):
+
+SELECT * FROM books WHERE out_of_print = 1 AND out_of_print = 0;
+```
+
+## 8.7 regroup
+
+
+- Overrides an existing `group` condition instead of combining them.
+
+```bash
+Book.group(:author).regroup(:id)
+
+# SQL Output:
+
+SELECT * FROM books GROUP BY id;
+```
+
+- Without `regroup`, conditions are combined:
+
+```bash
+Book.group(:author).group(:id)
+
+# SQL Output:
+
+SELECT * FROM books GROUP BY author, id;
+```
