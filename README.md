@@ -1190,3 +1190,78 @@ end
 - `includes`
 - `preload`
 - `eager_load`
+
+## 13.2 Includes
+
+- The `includes` method in Active Record is used to eager load associations, ensuring that all specified associations are loaded using the minimum possible number of queries.
+
+```ruby
+books = Book.includes(:author).limit(10)
+books.each do |book|
+  puts book.author.last_name
+end
+```
+
+- This code executes 2 queries instead of 11 queries:
+
+```bash
+SELECT books.* FROM books LIMIT 10
+SELECT authors.* FROM authors WHERE authors.id IN (1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
+```
+
+### 13.2.1 Eager Loading Multiple Associations
+
+- Active Record allows you to eager load multiple associations using:
+
+  - Array of associations
+  - Hash of associations
+  - Nested hash of associations
+
+#### 13.2.1.1 Array of Multiple Associations:
+
+```ruby
+Customer.includes(:orders, :reviews)
+```
+
+- This loads all customers with their associated orders and reviews.
+
+#### 13.2.1.2 Nested Associations Hash:
+
+```ruby
+Customer.includes(orders: { books: [:supplier, :author] }).find(1)
+```
+
+- This finds the customer with ID 1 and eager loads:
+
+  - Associated orders for the customer
+  - Books for each order
+  - Authors and suppliers for each book
+
+### 13.2.2 Specifying Conditions on Eager Loaded Associations
+
+- Although conditions can be specified on eager-loaded associations using where, it's recommended to use joins for conditions.
+
+```ruby
+Author.includes(:books).where(books: { out_of_print: true })
+```
+
+- This generates a LEFT OUTER JOIN query:
+
+```sql
+SELECT authors.id AS t0_r0, ... books.updated_at AS t1_r5 
+FROM authors 
+LEFT OUTER JOIN books ON books.author_id = authors.id 
+WHERE (books.out_of_print = 1)
+```
+
+**Using where with SQL Fragments**:
+
+- If you need to use raw SQL fragments with includes, you can use references:
+
+```ruby
+Author.includes(:books).where("books.out_of_print = true").references(:books)
+```
+
+- This forces the join condition to be applied to the correct table.
+
+
