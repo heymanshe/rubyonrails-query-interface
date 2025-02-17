@@ -1472,3 +1472,56 @@ end
 
 **Caution**: Default scope using array format will not assign attributes correctly.
 
+## 14.4 Merging of Scopes
+
+- Scopes are merged using `AND` conditions:
+
+```ruby
+class Book < ApplicationRecord
+  scope :in_print, -> { where(out_of_print: false) }
+  scope :out_of_print, -> { where(out_of_print: true) }
+  scope :recent, -> { where(year_published: 50.years.ago.year..) }
+  scope :old, -> { where(year_published: ...50.years.ago.year) }
+end
+
+SELECT books.* FROM books WHERE books.out_of_print = 'true' AND books.year_published < 1969
+```
+
+- `where` and `scope` conditions combine automatically:
+
+```bash
+SELECT books.* FROM books WHERE books.out_of_print = 'false' AND books.price < 100
+```
+
+- To override conflicting where conditions, use merge:
+
+```bash
+Book.in_print.merge(Book.out_of_print)
+
+SELECT books.* FROM books WHERE books.out_of_print = true
+```
+
+- Effect of `Default` Scope on Scopes and Queries:
+
+```ruby
+class Book < ApplicationRecord
+  default_scope { where(year_published: 50.years.ago.year..) }
+end
+
+SELECT books.* FROM books WHERE (year_published >= 1969)
+```
+
+4. Removing All Scoping
+
+Use unscoped to remove all applied scopes:
+
+Book.unscoped.load
+
+SELECT books.* FROM books
+
+unscoped can be used within a block:
+
+Book.unscoped { Book.out_of_print }
+
+SELECT books.* FROM books WHERE books.out_of_print = true
+
