@@ -995,6 +995,113 @@ book.with_lock do
 end
 ```
 
+# ActiveRecord Joins in Rails
+
+## 12. Joining Tables
+Active Record provides two methods for specifying JOIN clauses in SQL queries: `joins` and `left_outer_joins`. 
+- `joins` is used for INNER JOINs or custom queries.
+- `left_outer_joins` is used for LEFT OUTER JOIN queries.
+
+---
+
+## 12.1 `joins`
+The `joins` method can be used in several ways:
+
+### 12.1.1 Using a String SQL Fragment
+You can directly supply a raw SQL string specifying the JOIN clause:
+```ruby
+Author.joins("INNER JOIN books ON books.author_id = authors.id AND books.out_of_print = FALSE")
+```
+This will generate the following SQL:
+```sql
+SELECT authors.* FROM authors INNER JOIN books ON books.author_id = authors.id AND books.out_of_print = FALSE
+```
+
+### 12.1.2 Using Array/Hash of Named Associations
+You can use model associations as a shortcut for JOIN clauses.
+
+#### 12.1.2.1 Joining a Single Association
+To join a single association:
+```ruby
+Book.joins(:reviews)
+```
+This produces:
+```sql
+SELECT books.* FROM books INNER JOIN reviews ON reviews.book_id = books.id
+```
+
+#### 12.1.2.2 Joining Multiple Associations
+To join multiple associations:
+```ruby
+Book.joins(:author, :reviews)
+```
+This produces:
+```sql
+SELECT books.* FROM books
+  INNER JOIN authors ON authors.id = books.author_id
+  INNER JOIN reviews ON reviews.book_id = books.id
+```
+
+#### 12.1.2.3 Joining Nested Associations (Single Level)
+For nested associations:
+```ruby
+Book.joins(reviews: :customer)
+```
+This produces:
+```sql
+SELECT books.* FROM books
+  INNER JOIN reviews ON reviews.book_id = books.id
+  INNER JOIN customers ON customers.id = reviews.customer_id
+```
+
+#### 12.1.2.4 Joining Nested Associations (Multiple Levels)
+For multiple nested associations:
+```ruby
+Author.joins(books: [{ reviews: { customer: :orders } }, :supplier])
+```
+This produces:
+```sql
+SELECT authors.* FROM authors
+  INNER JOIN books ON books.author_id = authors.id
+  INNER JOIN reviews ON reviews.book_id = books.id
+  INNER JOIN customers ON customers.id = reviews.customer_id
+  INNER JOIN orders ON orders.customer_id = customers.id
+  INNER JOIN suppliers ON suppliers.id = books.supplier_id
+```
+
+### 12.1.3 Specifying Conditions on Joined Tables
+You can specify conditions on the joined tables using `where` clauses.
+
+#### Example:
+```ruby
+time_range = (Time.now.midnight - 1.day)..Time.now.midnight
+Customer.joins(:orders).where("orders.created_at" => time_range).distinct
+```
+This will find all customers with orders created yesterday.
+
+#### Cleaner Syntax:
+```ruby
+time_range = (Time.now.midnight - 1.day)..Time.now.midnight
+Customer.joins(:orders).where(orders: { created_at: time_range }).distinct
+```
+
+#### Using Named Scopes:
+First, define a scope in the `Order` model:
+```ruby
+class Order < ApplicationRecord
+  belongs_to :customer
+
+  scope :created_in_time_range, ->(time_range) { where(created_at: time_range) }
+end
+```
+
+Then, use the `merge` method to apply the scope:
+```ruby
+time_range = (Time.now.midnight - 1.day)..Time.now.midnight
+Customer.joins(:orders).merge(Order.created_in_time_range(time_range)).distinct
+```
+This will find all customers with orders created yesterday.
+
 
 
 
