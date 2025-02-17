@@ -1511,17 +1511,20 @@ end
 SELECT books.* FROM books WHERE (year_published >= 1969)
 ```
 
-4. Removing All Scoping
+## 14.5 Removing All Scoping
 
-Use unscoped to remove all applied scopes:
+- Use unscoped to remove all applied scopes:
 
+```bash
 Book.unscoped.load
 
 SELECT books.* FROM books
+```
 
-unscoped can be used within a block:
+- unscoped can be used within a block:
 
+```bash
 Book.unscoped { Book.out_of_print }
 
 SELECT books.* FROM books WHERE books.out_of_print = true
-
+```
