@@ -1119,3 +1119,43 @@ GROUP BY customers.id
 ```
 
 - This query returns all customers with their review count, whether or not they have any reviews.
+
+## 12.3 `where.associated` and `where.missing`
+
+- These methods allow you to filter records based on the presence or absence of an association.
+
+### `where.associated`
+
+- This method selects records that have an associated record.
+
+```ruby
+Customer.where.associated(:reviews)
+```
+
+```sql
+SELECT customers.*
+FROM customers
+INNER JOIN reviews ON reviews.customer_id = customers.id
+WHERE reviews.id IS NOT NULL
+```
+
+- This query returns all customers that have made at least one review.
+
+### `where.missing`
+
+- This method selects records that are missing an associated record.
+
+```ruby
+Customer.where.missing(:reviews)
+```
+
+```sql
+SELECT customers.*
+FROM customers
+LEFT OUTER JOIN reviews ON reviews.customer_id = customers.id
+WHERE reviews.id IS NULL
+```
+
+- This query returns all customers that have not made any reviews.
+
+
