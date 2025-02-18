@@ -1746,4 +1746,14 @@ nina.save # => true
 Customer.find_by_sql("SELECT * FROM customers INNER JOIN orders ON customers.id = orders.customer_id ORDER BY customers.created_at DESC")
 ```
 
+## 19.2 select_all
 
+- Similar to `find_by_sql` but does not instantiate ActiveRecord objects.
+
+- Returns an `ActiveRecord::Result` object.
+
+```bash
+Customer.lease_connection.select_all("SELECT first_name, created_at FROM customers WHERE id = '1'").to_a
+```
+
+- Output is an array of hashes.
