@@ -1705,3 +1705,33 @@ validates :orders_count, presence: true
 ActiveRecord::RecordInvalid: Validation failed: Orders count can't be blank
 ```
 
+## 18.3 find_or_initialize_by
+
+- Works like `find_or_create_by` but calls new instead of create.
+
+- A new model instance is created in memory but not saved to the database.
+
+```bash
+nina = Customer.find_or_initialize_by(first_name: 'Nina')
+```
+
+- The record is not yet persisted:
+
+```bash
+nina.persisted? # => false
+nina.new_record? # => true
+```
+
+- Generated SQL:
+
+```bash
+SELECT * FROM customers WHERE (customers.first_name = 'Nina') LIMIT 1;
+```
+
+- Save it explicitly:
+
+```bash
+nina.save # => true
+```
+
+
