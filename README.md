@@ -1788,3 +1788,28 @@ Customer.select(:id).map(&:id)
 Customer.where(id: 1).pick(:id)
 ```
 
+## 19.5 ids
+
+- Retrieves all primary key IDs for the relation.
+
+```bash
+Customer.ids
+```
+
+- Uses the model's primary key, even if it's custom-defined.
+
+
+### Additional Notes
+
+- pluck can query multiple tables:
+
+```bash
+Order.joins(:customer, :books).pluck("orders.created_at, customers.email, books.title")
+```
+
+- `pluck` triggers eager loading if `includes` is used but can be avoided with `unscope(:includes)`:
+
+```bash
+assoc = Customer.includes(:reviews)
+assoc.unscope(:includes).pluck(:id)
+```
