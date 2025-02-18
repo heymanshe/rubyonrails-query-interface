@@ -1942,3 +1942,12 @@ Order.average(:subtotal)
 ```bash
 Order.minimum(:subtotal)
 ```
+
+## 21.4 Maximum
+
+- Finds the maximum value of a column:
+
+```bash
+Order.maximum(:subtotal)
+```
+
