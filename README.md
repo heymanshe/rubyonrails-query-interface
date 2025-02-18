@@ -1859,3 +1859,69 @@ Book.where(out_of_print: true).many?
 ```ruby
 Customer.first.orders.any?
 Customer.first.orders.many?
+```
+
+# 21. ActiveRecord Calculations 
+
+### Overview
+
+- ActiveRecord provides built-in methods to perform calculations directly on models and relations. These include:
+
+  - `count`
+
+  - `average`
+
+  - `minimum`
+
+  - `maximum`
+
+  - `sum`
+
+- All calculation methods work on models and ActiveRecord relations.
+
+## 21.1 Count
+
+- Counts the number of records in a table:
+
+```bash
+Customer.count
+```
+
+- SQL executed:
+
+```bash
+SELECT COUNT(*) FROM customers
+```
+
+- Count with conditions:
+
+```bash
+Customer.where(first_name: 'Ryan').count
+```
+
+- SQL executed:
+
+```bash
+SELECT COUNT(*) FROM customers WHERE (first_name = 'Ryan')
+```
+
+- Count with joins:
+
+```bash
+Customer.includes(:orders).where(first_name: 'Ryan', orders: { status: 'shipped' }).count
+```
+
+- SQL executed:
+
+```bash
+SELECT COUNT(DISTINCT customers.id) FROM customers
+LEFT OUTER JOIN orders ON orders.customer_id = customers.id
+WHERE (customers.first_name = 'Ryan' AND orders.status = 0)
+```
+
+- Count a specific column:
+
+```bash
+Customer.count(:title)
+```
+
