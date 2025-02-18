@@ -1734,4 +1734,16 @@ SELECT * FROM customers WHERE (customers.first_name = 'Nina') LIMIT 1;
 nina.save # => true
 ```
 
+# 19. SQL Finding Methods in ActiveRecord
+
+## 19.1 find_by_sql
+
+- Allows executing custom SQL queries.
+
+- Returns an array of ActiveRecord objects.
+
+```bash
+Customer.find_by_sql("SELECT * FROM customers INNER JOIN orders ON customers.id = orders.customer_id ORDER BY customers.created_at DESC")
+```
+
 
