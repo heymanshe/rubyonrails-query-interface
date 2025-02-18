@@ -1925,3 +1925,13 @@ WHERE (customers.first_name = 'Ryan' AND orders.status = 0)
 Customer.count(:title)
 ```
 
+## 21.2 Average
+
+- Calculates the average value of a column:
+
+```bash
+Order.average(:subtotal)
+```
+
+- Returns a floating-point number representing the average.
+
