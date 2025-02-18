@@ -1589,5 +1589,35 @@ order.shipped!
 - Enums make it easier to manage status-like attributes with meaningful names instead of integers.
 
 
+# 17. Understanding Method Chaining
 
+- Method Chaining in Active Record allows combining multiple methods in a concise way. It works when a method returns an `ActiveRecord::Relation` object, enabling further operations like filtering and joining tables. Queries are only executed when data is actually needed.
+
+### Key Points
+
+- `Chaining Active Record Methods`: Methods like all, where, and joins return an ActiveRecord::Relation, allowing chaining.
+
+- `Execution of Queries`: Queries are not executed immediately but only when data is required.
+
+- `Methods Returning Single Objects`: Methods like find_by must be at the end of the chain since they return a single object.
+
+
+## 17.1 Retrieving Filtered Data from Multiple Tables
+
+```bash
+Customer
+  .select("customers.id, customers.last_name, reviews.body")
+  .joins(:reviews)
+  .where("reviews.created_at > ?", 1.week.ago)
+```
+
+- Generated SQL Query:
+
+```bash
+SELECT customers.id, customers.last_name, reviews.body
+FROM customers
+INNER JOIN reviews
+  ON reviews.customer_id = customers.id
+WHERE (reviews.created_at > 'YYYY-MM-DD')
+```
 
