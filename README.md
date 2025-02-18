@@ -1778,3 +1778,13 @@ Customer.select(:id).map(&:id)
 
 - Cannot be chained further (e.g., `pluck(:first_name).limit(1)` is invalid).
 
+## 19.4 pick
+
+- Fetches a single value from the first row.
+
+- Equivalent to `relation.limit(1).pluck(*column_names).first`.
+
+```bash
+Customer.where(id: 1).pick(:id)
+```
+
