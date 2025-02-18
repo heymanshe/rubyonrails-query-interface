@@ -1685,3 +1685,23 @@ Customer.find_or_create_by(first_name: "Andy") do |c|
 end
 ```
 
+## 18.2 find_or_create_by!
+
+- Similar to find_or_create_by but raises an exception if the new record is invalid.
+
+```bash
+Customer.find_or_create_by!(first_name: 'Andy')
+```
+
+- If `orders_count` validation is added:
+
+```bash
+validates :orders_count, presence: true
+```
+
+- Running the above will raise an error:
+
+```bash
+ActiveRecord::RecordInvalid: Validation failed: Orders count can't be blank
+```
+
