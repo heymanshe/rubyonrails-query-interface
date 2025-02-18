@@ -1734,4 +1734,82 @@ SELECT * FROM customers WHERE (customers.first_name = 'Nina') LIMIT 1;
 nina.save # => true
 ```
 
+# 19. SQL Finding Methods in ActiveRecord
 
+## 19.1 find_by_sql
+
+- Allows executing custom SQL queries.
+
+- Returns an array of ActiveRecord objects.
+
+```bash
+Customer.find_by_sql("SELECT * FROM customers INNER JOIN orders ON customers.id = orders.customer_id ORDER BY customers.created_at DESC")
+```
+
+## 19.2 select_all
+
+- Similar to `find_by_sql` but does not instantiate ActiveRecord objects.
+
+- Returns an `ActiveRecord::Result` object.
+
+```bash
+Customer.lease_connection.select_all("SELECT first_name, created_at FROM customers WHERE id = '1'").to_a
+```
+
+- Output is an array of hashes.
+
+## 19.3 pluck
+
+- Retrieves values directly as an array without creating ActiveRecord objects.
+
+- Efficient for fetching column values.
+
+```bash
+Book.where(out_of_print: true).pluck(:id)
+Order.distinct.pluck(:status)
+Customer.pluck(:id, :first_name)
+```
+
+- More efficient than:
+
+```bash
+Customer.select(:id).map(&:id)
+```
+
+- Cannot be chained further (e.g., `pluck(:first_name).limit(1)` is invalid).
+
+## 19.4 pick
+
+- Fetches a single value from the first row.
+
+- Equivalent to `relation.limit(1).pluck(*column_names).first`.
+
+```bash
+Customer.where(id: 1).pick(:id)
+```
+
+## 19.5 ids
+
+- Retrieves all primary key IDs for the relation.
+
+```bash
+Customer.ids
+```
+
+- Uses the model's primary key, even if it's custom-defined.
+
+
+### Additional Notes
+
+- pluck can query multiple tables:
+
+```bash
+Order.joins(:customer, :books).pluck("orders.created_at, customers.email, books.title")
+```
+
+- `pluck` triggers eager loading if `includes` is used but can be avoided with `unscope(:includes)`:
+
+```bash
+assoc = Customer.includes(:reviews)
+assoc.unscope(:includes).pluck(:id)
+```
