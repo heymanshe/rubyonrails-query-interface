@@ -1813,3 +1813,49 @@ Order.joins(:customer, :books).pluck("orders.created_at, customers.email, books.
 assoc = Customer.includes(:reviews)
 assoc.unscope(:includes).pluck(:id)
 ```
+
+# 20. Object Existence Checks
+
+## `exists?`
+- Checks if an object exists in the database.
+- Returns `true` if at least one matching record is found, `false` otherwise.
+
+### Usage:
+```ruby
+Customer.exists?(1)  # Checks if a customer with ID 1 exists
+
+Customer.exists?(id: [1, 2, 3])  # Returns true if any of these IDs exist
+
+Customer.exists?(first_name: ["Jane", "Sergei"])  # Returns true if any matching name exists
+
+Customer.where(first_name: "Ryan").exists?  # True if at least one customer has first_name 'Ryan'
+
+Customer.exists?  # Returns true if the table is not empty, false otherwise
+```
+
+## `any?` and `many?`
+- `any?` checks if at least one record exists.
+- `many?` checks if more than one record exists using SQL `COUNT`.
+
+### Model-level checks:
+```ruby
+Order.any?  # SELECT 1 FROM orders LIMIT 1
+Order.many?  # SELECT COUNT(*) FROM (SELECT 1 FROM orders LIMIT 2)
+```
+
+### Named scope:
+```ruby
+Order.shipped.any?  # SELECT 1 FROM orders WHERE status = 0 LIMIT 1
+Order.shipped.many?  # SELECT COUNT(*) FROM (SELECT 1 FROM orders WHERE status = 0 LIMIT 2)
+```
+
+### Relation-level checks:
+```ruby
+Book.where(out_of_print: true).any?
+Book.where(out_of_print: true).many?
+```
+
+### Association-level checks:
+```ruby
+Customer.first.orders.any?
+Customer.first.orders.many?
