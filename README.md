@@ -1643,3 +1643,45 @@ LIMIT 1
 
 **Note**: `find_by` retrieves only the first matching record (LIMIT 1).
 
+# 18. Finding or Creating Records 
+
+## 18.1 find_or_create_by
+
+- Checks whether a record with the specified attributes exists.
+
+- If it does not exist, it calls create to insert a new record.
+
+```bash
+Customer.find_or_create_by(first_name: 'Andy')
+```
+
+- Generates the following SQL:
+
+```bash
+SELECT * FROM customers WHERE (customers.first_name = 'Andy') LIMIT 1;
+BEGIN;
+INSERT INTO customers (created_at, first_name, locked, orders_count, updated_at)
+VALUES ('2011-08-30 05:22:57', 'Andy', 1, NULL, '2011-08-30 05:22:57');
+COMMIT;
+```
+
+- Returns either the existing record or the newly created record.
+
+- If validations fail, the new record will not be saved.
+
+### Setting Default Attributes on Creation
+
+- Use `create_with`:
+
+```bash
+Customer.create_with(locked: false).find_or_create_by(first_name: "Andy")
+```
+
+- Or use a block (executed only if the record is created):
+
+```bash
+Customer.find_or_create_by(first_name: "Andy") do |c|
+  c.locked = false
+end
+```
+
