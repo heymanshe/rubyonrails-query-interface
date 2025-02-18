@@ -1951,3 +1951,12 @@ Order.minimum(:subtotal)
 Order.maximum(:subtotal)
 ```
 
+## 21.5 Sum
+
+- Finds the total sum of a column:
+
+```bash
+Order.sum(:subtotal)
+```
+
+
