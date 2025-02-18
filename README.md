@@ -1859,3 +1859,104 @@ Book.where(out_of_print: true).many?
 ```ruby
 Customer.first.orders.any?
 Customer.first.orders.many?
+```
+
+# 21. ActiveRecord Calculations 
+
+### Overview
+
+- ActiveRecord provides built-in methods to perform calculations directly on models and relations. These include:
+
+  - `count`
+
+  - `average`
+
+  - `minimum`
+
+  - `maximum`
+
+  - `sum`
+
+- All calculation methods work on models and ActiveRecord relations.
+
+## 21.1 Count
+
+- Counts the number of records in a table:
+
+```bash
+Customer.count
+```
+
+- SQL executed:
+
+```bash
+SELECT COUNT(*) FROM customers
+```
+
+- Count with conditions:
+
+```bash
+Customer.where(first_name: 'Ryan').count
+```
+
+- SQL executed:
+
+```bash
+SELECT COUNT(*) FROM customers WHERE (first_name = 'Ryan')
+```
+
+- Count with joins:
+
+```bash
+Customer.includes(:orders).where(first_name: 'Ryan', orders: { status: 'shipped' }).count
+```
+
+- SQL executed:
+
+```bash
+SELECT COUNT(DISTINCT customers.id) FROM customers
+LEFT OUTER JOIN orders ON orders.customer_id = customers.id
+WHERE (customers.first_name = 'Ryan' AND orders.status = 0)
+```
+
+- Count a specific column:
+
+```bash
+Customer.count(:title)
+```
+
+## 21.2 Average
+
+- Calculates the average value of a column:
+
+```bash
+Order.average(:subtotal)
+```
+
+- Returns a floating-point number representing the average.
+
+## 21.3 Minimum
+
+- Finds the minimum value of a column:
+
+```bash
+Order.minimum(:subtotal)
+```
+
+## 21.4 Maximum
+
+- Finds the maximum value of a column:
+
+```bash
+Order.maximum(:subtotal)
+```
+
+## 21.5 Sum
+
+- Finds the total sum of a column:
+
+```bash
+Order.sum(:subtotal)
+```
+
+
