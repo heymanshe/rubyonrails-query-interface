@@ -1643,3 +1643,95 @@ LIMIT 1
 
 **Note**: `find_by` retrieves only the first matching record (LIMIT 1).
 
+# 18. Finding or Creating Records 
+
+## 18.1 find_or_create_by
+
+- Checks whether a record with the specified attributes exists.
+
+- If it does not exist, it calls create to insert a new record.
+
+```bash
+Customer.find_or_create_by(first_name: 'Andy')
+```
+
+- Generates the following SQL:
+
+```bash
+SELECT * FROM customers WHERE (customers.first_name = 'Andy') LIMIT 1;
+BEGIN;
+INSERT INTO customers (created_at, first_name, locked, orders_count, updated_at)
+VALUES ('2011-08-30 05:22:57', 'Andy', 1, NULL, '2011-08-30 05:22:57');
+COMMIT;
+```
+
+- Returns either the existing record or the newly created record.
+
+- If validations fail, the new record will not be saved.
+
+### Setting Default Attributes on Creation
+
+- Use `create_with`:
+
+```bash
+Customer.create_with(locked: false).find_or_create_by(first_name: "Andy")
+```
+
+- Or use a block (executed only if the record is created):
+
+```bash
+Customer.find_or_create_by(first_name: "Andy") do |c|
+  c.locked = false
+end
+```
+
+## 18.2 find_or_create_by!
+
+- Similar to find_or_create_by but raises an exception if the new record is invalid.
+
+```bash
+Customer.find_or_create_by!(first_name: 'Andy')
+```
+
+- If `orders_count` validation is added:
+
+```bash
+validates :orders_count, presence: true
+```
+
+- Running the above will raise an error:
+
+```bash
+ActiveRecord::RecordInvalid: Validation failed: Orders count can't be blank
+```
+
+## 18.3 find_or_initialize_by
+
+- Works like `find_or_create_by` but calls new instead of create.
+
+- A new model instance is created in memory but not saved to the database.
+
+```bash
+nina = Customer.find_or_initialize_by(first_name: 'Nina')
+```
+
+- The record is not yet persisted:
+
+```bash
+nina.persisted? # => false
+nina.new_record? # => true
+```
+
+- Generated SQL:
+
+```bash
+SELECT * FROM customers WHERE (customers.first_name = 'Nina') LIMIT 1;
+```
+
+- Save it explicitly:
+
+```bash
+nina.save # => true
+```
+
+
