@@ -1959,4 +1959,75 @@ Order.maximum(:subtotal)
 Order.sum(:subtotal)
 ```
 
+# 22. Running EXPLAIN
+
+- `EXPLAIN` provides query execution details for optimization.
+
+- Running `EXPLAIN` on a relation shows the execution plan for different databases.
+
+```bash
+Customer.where(id: 1).joins(:orders).explain
+```
+
+### MySQL and MariaDB Output:
+
+- Generates an `EXPLAIN` statement.
+
+- Displays query execution details in tabular format with fields like `select_type`, `table`, `type`, `possible_keys`, `key`, etc.
+
+### PostgreSQL Output:
+
+- Uses a different format with QUERY PLAN.
+
+```bash
+Nested Loop  (cost=4.33..20.85 rows=4 width=164)
+->  Index Scan using customers_pkey on customers  (cost=0.15..8.17 rows=1 width=164)
+      Index Cond: (id = '1'::bigint)
+->  Bitmap Heap Scan on orders  (cost=4.18..12.64 rows=4 width=8)
+      Recheck Cond: (customer_id = '1'::bigint)
+```
+
+### Eager Loading and EXPLAIN
+
+- `includes` may trigger multiple queries.
+
+- Each query is explained separately.
+
+```bash
+Customer.where(id: 1).includes(:orders).explain
+```
+
+- MySQL and MariaDB execute separate `EXPLAIN` queries for `customers` and `orders`.
+
+- PostgreSQL also provides separate query plans for each query.
+
+## 22.1 EXPLAIN Options
+
+- Some databases support options for deeper analysis:
+
+```bash
+Customer.where(id: 1).joins(:orders).explain(:analyze, :verbose)
+```
+
+### PostgreSQL Output (Verbose & Analyze):
+
+- Shows execution time, index usage, heap fetches, and planning time.
+
+### MySQL/MariaDB Output (Analyze):
+
+- Provides execution statistics with `ANALYZE SELECT`.
+
+## 22.1 Interpreting EXPLAIN
+
+- `EXPLAIN` interpretation varies by database.
+
+- Useful references:
+
+  - **SQLite3**: `EXPLAIN QUERY PLAN`
+
+  - **MySQL**: `EXPLAIN Output Format`
+
+  - **MariaDB**: `EXPLAIN`
+
+  - **PostgreSQL**: `Using EXPLAIN`
 
