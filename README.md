@@ -1351,3 +1351,243 @@ end
 ```
 
 - This ensures that any lazy loading of the books association will raise an error.
+
+# 14. Scopes
+
+- Scopes in Rails allow you to define reusable queries that can be called as methods on models or associations. Scopes return an `ActiveRecord::Relation`, enabling method chaining.
+
+- Define a scope using the `scope` method inside a model class:
+
+```ruby
+class Book < ApplicationRecord
+  scope :out_of_print, -> { where(out_of_print: true) }
+end
+```
+
+- Call the scope directly on the model or an association:
+
+```ruby
+Book.out_of_print # Returns all out-of-print books
+
+author = Author.first
+author.books.out_of_print # Returns all out-of-print books by the author
+```
+
+- Scopes can be combined for more complex queries:
+
+```ruby
+class Book < ApplicationRecord
+  scope :out_of_print, -> { where(out_of_print: true) }
+  scope :out_of_print_and_expensive, -> { out_of_print.where("price > 500") }
+end
+```
+
+## 14.1 Passing Arguments to Scopes
+
+- Scopes can accept parameters:
+
+```ruby
+class Book < ApplicationRecord
+  scope :costs_more_than, ->(amount) { where("price > ?", amount) }
+end
+```
+
+### Calling a Scope with Arguments
+```ruby
+Book.costs_more_than(100.10)
+```
+
+## Alternative Using Class Methods
+Scopes can be replaced with class methods:
+
+```ruby
+class Book < ApplicationRecord
+  def self.costs_more_than(amount)
+    where("price > ?", amount)
+  end
+end
+```
+
+- Class methods work similarly on associations:
+
+```ruby
+author.books.costs_more_than(100.10)
+```
+
+## 14.2 Using Conditionals in Scopes
+
+- Scopes can use conditionals:
+
+```ruby
+class Order < ApplicationRecord
+  scope :created_before, ->(time) { where(created_at: ...time) if time.present? }
+end
+```
+
+- Scopes behave similarly to class methods:
+
+```ruby
+class Order < ApplicationRecord
+  def self.created_before(time)
+    where(created_at: ...time) if time.present?
+  end
+end
+```
+
+- A scope always returns an `ActiveRecord::Relation`, even if the conditional is `false`.
+
+- A class method can return `nil`, potentially causing `NoMethodError` when chaining methods.
+
+## 14.3 Applying a Default Scope
+
+- A default_scope applies a scope to all queries on the model:
+
+```ruby
+class Book < ApplicationRecord
+  default_scope { where(out_of_print: false) }
+end
+```
+
+- The SQL query will always include the condition:
+
+```bash
+SELECT * FROM books WHERE (out_of_print = false)
+```
+
+- Alternative way using a class method:
+
+```ruby
+class Book < ApplicationRecord
+  def self.default_scope
+    # Should return an ActiveRecord::Relation.
+  end
+end
+```
+
+#### Effects of `Default Scope`:
+
+- Applied when creating a new record (`Book.new` includes default scope attributes).
+
+- Not applied when updating records.
+
+**Caution**: Default scope using array format will not assign attributes correctly.
+
+## 14.4 Merging of Scopes
+
+- Scopes are merged using `AND` conditions:
+
+```ruby
+class Book < ApplicationRecord
+  scope :in_print, -> { where(out_of_print: false) }
+  scope :out_of_print, -> { where(out_of_print: true) }
+  scope :recent, -> { where(year_published: 50.years.ago.year..) }
+  scope :old, -> { where(year_published: ...50.years.ago.year) }
+end
+
+SELECT books.* FROM books WHERE books.out_of_print = 'true' AND books.year_published < 1969
+```
+
+- `where` and `scope` conditions combine automatically:
+
+```bash
+SELECT books.* FROM books WHERE books.out_of_print = 'false' AND books.price < 100
+```
+
+- To override conflicting where conditions, use merge:
+
+```bash
+Book.in_print.merge(Book.out_of_print)
+
+SELECT books.* FROM books WHERE books.out_of_print = true
+```
+
+- Effect of `Default` Scope on Scopes and Queries:
+
+```ruby
+class Book < ApplicationRecord
+  default_scope { where(year_published: 50.years.ago.year..) }
+end
+
+SELECT books.* FROM books WHERE (year_published >= 1969)
+```
+
+## 14.5 Removing All Scoping
+
+- Use unscoped to remove all applied scopes:
+
+```bash
+Book.unscoped.load
+
+SELECT books.* FROM books
+```
+
+- unscoped can be used within a block:
+
+```bash
+Book.unscoped { Book.out_of_print }
+
+SELECT books.* FROM books WHERE books.out_of_print = true
+```
+
+# 15. Dynamic Finders
+
+- Active Record automatically provides finder methods for each field in a model.
+
+- Example: If `first_name` is a field in Customer, you can use:
+
+```bash
+Customer.find_by_first_name("Ryan")
+```
+
+- If a field like locked exists, the method find_by_locked is available.
+
+- Adding `!` to the method raises `ActiveRecord::RecordNotFound` if no record is found:
+
+```bash
+Customer.find_by_first_name!("Ryan")
+```
+
+- To find records based on multiple fields, use "and":
+
+```bash
+Customer.find_by_first_name_and_orders_count("Ryan", 5)
+```
+
+# 16. Enums
+
+- Enums allow defining an array of values for an attribute, stored as integers in the database.
+
+```ruby
+class Order < ApplicationRecord
+  enum :status, [:shipped, :being_packaged, :complete, :cancelled]
+end
+```
+
+- Scopes created automatically:
+
+```bash
+Order.shipped       # Finds all orders with status == :shipped
+Order.not_shipped   # Finds all orders with status != :shipped
+```
+
+- Instance methods for querying enum values:
+
+```bash
+order = Order.shipped.first
+order.shipped?  # => true
+order.complete? # => false
+```
+
+- Instance methods to update and check status:
+
+```bash
+order = Order.first
+order.shipped!
+# Updates status to :shipped and returns true if successful
+```
+
+- Enums make it easier to manage status-like attributes with meaningful names instead of integers.
+
+
+
+
