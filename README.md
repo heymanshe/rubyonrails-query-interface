@@ -1621,3 +1621,25 @@ INNER JOIN reviews
 WHERE (reviews.created_at > 'YYYY-MM-DD')
 ```
 
+## 17.2 Retrieving Specific Data from Multiple Tables
+
+```bash
+Book
+  .select("books.id, books.title, authors.first_name")
+  .joins(:author)
+  .find_by(title: "Abstraction and Specification in Program Development")
+```
+
+- Generated SQL Query:
+
+```bash
+SELECT books.id, books.title, authors.first_name
+FROM books
+INNER JOIN authors
+  ON authors.id = books.author_id
+WHERE books.title = $1 [["title", "Abstraction and Specification in Program Development"]]
+LIMIT 1
+```
+
+**Note**: `find_by` retrieves only the first matching record (LIMIT 1).
+
