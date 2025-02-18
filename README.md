@@ -1553,6 +1553,41 @@ Customer.find_by_first_name!("Ryan")
 Customer.find_by_first_name_and_orders_count("Ryan", 5)
 ```
 
+# 16. Enums
+
+- Enums allow defining an array of values for an attribute, stored as integers in the database.
+
+```ruby
+class Order < ApplicationRecord
+  enum :status, [:shipped, :being_packaged, :complete, :cancelled]
+end
+```
+
+- Scopes created automatically:
+
+```bash
+Order.shipped       # Finds all orders with status == :shipped
+Order.not_shipped   # Finds all orders with status != :shipped
+```
+
+- Instance methods for querying enum values:
+
+```bash
+order = Order.shipped.first
+order.shipped?  # => true
+order.complete? # => false
+```
+
+- Instance methods to update and check status:
+
+```bash
+order = Order.first
+order.shipped!
+# Updates status to :shipped and returns true if successful
+```
+
+- Enums make it easier to manage status-like attributes with meaningful names instead of integers.
+
 
 
 
