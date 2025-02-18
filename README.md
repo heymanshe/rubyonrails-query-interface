@@ -1935,3 +1935,10 @@ Order.average(:subtotal)
 
 - Returns a floating-point number representing the average.
 
+## 21.3 Minimum
+
+- Finds the minimum value of a column:
+
+```bash
+Order.minimum(:subtotal)
+```
