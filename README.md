@@ -1528,3 +1528,31 @@ Book.unscoped { Book.out_of_print }
 
 SELECT books.* FROM books WHERE books.out_of_print = true
 ```
+
+# 15. Dynamic Finders
+
+- Active Record automatically provides finder methods for each field in a model.
+
+- Example: If `first_name` is a field in Customer, you can use:
+
+```bash
+Customer.find_by_first_name("Ryan")
+```
+
+- If a field like locked exists, the method find_by_locked is available.
+
+- Adding `!` to the method raises `ActiveRecord::RecordNotFound` if no record is found:
+
+```bash
+Customer.find_by_first_name!("Ryan")
+```
+
+- To find records based on multiple fields, use "and":
+
+```bash
+Customer.find_by_first_name_and_orders_count("Ryan", 5)
+```
+
+
+
+
