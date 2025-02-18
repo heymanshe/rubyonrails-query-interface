@@ -1757,3 +1757,24 @@ Customer.lease_connection.select_all("SELECT first_name, created_at FROM custome
 ```
 
 - Output is an array of hashes.
+
+## 19.3 pluck
+
+- Retrieves values directly as an array without creating ActiveRecord objects.
+
+- Efficient for fetching column values.
+
+```bash
+Book.where(out_of_print: true).pluck(:id)
+Order.distinct.pluck(:status)
+Customer.pluck(:id, :first_name)
+```
+
+- More efficient than:
+
+```bash
+Customer.select(:id).map(&:id)
+```
+
+- Cannot be chained further (e.g., `pluck(:first_name).limit(1)` is invalid).
+
